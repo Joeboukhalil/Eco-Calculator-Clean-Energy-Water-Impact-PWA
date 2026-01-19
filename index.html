@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clean Energy & Water Impact Calculator</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2e7d32">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #e8f5e9, #ffffff);
+    padding: 20px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+h1 {
+    text-align: center;
+    color: #2e7d32;
+}
+
+h2 {
+    color: #1b5e20;
+    margin-top: 25px;
+}
+
+.section {
+    margin-bottom: 18px;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-top: 6px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1b5e20;
+}
+
+.result {
+    margin-top: 25px;
+    padding: 18px;
+    background: #f1f8e9;
+    border-radius: 10px;
+}
+
+.result-block {
+    margin-bottom: 15px;
+}
+
+.desc {
+    font-size: 13px;
+    color: #444;
+    margin-left: 10px;
+}
+
+.method {
+    font-size: 12px;
+    color: #666;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 15px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>🌍 Clean Energy & Water Impact Calculator</h1>
+
+<div class="section">
+<label>💡 LED bulbs switched:</label>
+<input id="bulbs" type="number" value="5">
+
+<label>Hours used per day:</label>
+<input id="hours" type="number" value="5">
+</div>
+
+<div class="section">
+<label>🚲 Kilometers biked per week:</label>
+<input id="bikeKm" type="number" value="10">
+</div>
+
+<div class="section">
+<label>☀️ Solar system size (kW):</label>
+<input id="solarKw" type="number" value="3">
+
+<label>Average sun hours per day:</label>
+<input id="sunHours" type="number" value="5">
+</div>
+
+<div class="section">
+<label>🏠 Home size (m²):</label>
+<input id="homeSize" type="number" value="100">
+
+<label>Heating / cooling months per year:</label>
+<input id="months" type="number" value="6">
+</div>
+
+<div class="section">
+<label>🚗 Carpool kilometers per week:</label>
+<input id="carpoolKm" type="number" value="20">
+
+<label>People sharing the ride:</label>
+<input id="people" type="number" value="2">
+</div>
+
+<div class="section">
+<label>🚰 Sink time reduced (minutes/day):</label>
+<input id="sinkMinutes" type="number" value="3">
+</div>
+
+<div class="section">
+<label>🚿 Showers per week (20 → 15 min):</label>
+<input id="showers" type="number" value="5">
+</div>
+
+<button onclick="calculate()">Calculate Environmental Impact</button>
+
+<div class="result" id="result"></div>
+</div>
+
+<script>
+function calculate() {
+    const co2PerKwh = 0.4;
+    const treeKg = 21;
+
+    const ledCO2 = bulbs.value * (60-10) * hours.value * 365 / 1000 * co2PerKwh;
+    const bikeCO2 = bikeKm.value * 52 * 0.21;
+    const solarCO2 = solarKw.value * sunHours.value * 365 * co2PerKwh;
+    const insulationCO2 = homeSize.value * months.value * 2;
+    const carpoolCO2 = (carpoolKm.value * 52 * 0.21) * (1 - 1 / people.value);
+
+    const sinkWater = sinkMinutes.value * 6 * 365;
+    const showerWater = showers.value * 5 * 9 * 52;
+    const waterCO2 = (sinkWater + showerWater) * 0.0003;
+
+    const totalCO2 = ledCO2 + bikeCO2 + solarCO2 + insulationCO2 + carpoolCO2 + waterCO2;
+    const trees = totalCO2 / treeKg;
+
+    let score = "Beginner 🌱";
+    if (totalCO2 > 500) score = "Eco Saver 🌿";
+    if (totalCO2 > 1000) score = "Eco Hero 🌍";
+    if (totalCO2 > 2000) score = "Climate Champion 🏆";
+
+    result.innerHTML = `
+<h2>🔋 Energy Efficiency</h2>
+
+<div class="result-block">
+<strong>LED Emissions Reduction:</strong> ${ledCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Avoided emissions from reduced electricity use due to efficient LED lighting.</p>
+<p class="method">Estimated using average wattage differences and grid emission factors.</p>
+</div>
+
+<div class="result-block">
+<strong>Clean Electricity Emissions Avoided (Solar):</strong> ${solarCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Emissions avoided by producing renewable electricity instead of fossil-fuel power.</p>
+<p class="method">Based on system size, sun hours, and grid emissions.</p>
+</div>
+
+<div class="result-block">
+<strong>Heating & Cooling Emissions Reduction:</strong> ${insulationCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Reduced energy demand due to improved thermal insulation.</p>
+<p class="method">Estimated from home size and heating/cooling duration.</p>
+</div>
+
+<h2>🚲 Transportation</h2>
+
+<div class="result-block">
+<strong>Avoided Transport Emissions (Biking):</strong> ${bikeCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Emissions avoided by replacing car trips with cycling.</p>
+<p class="method">Assumes 0.21 kg CO₂ per km driven.</p>
+</div>
+
+<div class="result-block">
+<strong>Shared Transport Emissions Reduction:</strong> ${carpoolCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Lower emissions per person by sharing vehicle trips.</p>
+<p class="method">Emissions distributed among passengers.</p>
+</div>
+
+<h2>🚰 Water Conservation</h2>
+
+<div class="result-block">
+<strong>Tap Water Conservation:</strong> ${sinkWater.toFixed(0)} liters / year
+<p class="desc">Water saved by reducing daily tap usage.</p>
+<p class="method">Calculated using average tap flow rates.</p>
+</div>
+
+<div class="result-block">
+<strong>Shower Water Conservation:</strong> ${showerWater.toFixed(0)} liters / year
+<p class="desc">Water saved by shortening shower duration.</p>
+<p class="method">Based on standard shower flow and frequency.</p>
+</div>
+
+<div class="result-block">
+<strong>Water-Related Energy Emissions Reduction:</strong> ${waterCO2.toFixed(1)} kg CO₂e / year
+<p class="desc">Lower energy use for water heating and treatment.</p>
+</div>
+
+<hr>
+
+<h2>🌍 Overall Impact</h2>
+
+<strong>Total Emissions Reduction:</strong> ${totalCO2.toFixed(1)} kg CO₂e / year<br>
+<strong>Carbon Sequestration Equivalent:</strong> ≈ ${trees.toFixed(1)} trees / year 🌳<br>
+<strong>Sustainability Impact Rating:</strong> ${score}
+
+<p class="method">
+All results are estimates for educational purposes. Actual values may vary depending on location,
+energy sources, and personal behavior.
+</p>
+`;
+}
+
+/* PWA Service Worker */
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
